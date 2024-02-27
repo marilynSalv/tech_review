@@ -10,7 +10,7 @@ namespace StargateAPI.Controllers
    
     [ApiController]
     [Route("[controller]")]
-    public class PersonController : ControllerBase //component class like hotdogstand or frenchfrie stand
+    public class PersonController : ControllerBase
     {
         private readonly IMediator _mediator;
         public PersonController(IMediator mediator)
@@ -25,13 +25,13 @@ namespace StargateAPI.Controllers
             {
                 var result = await _mediator.Send(new GetPeople()
                 {
-
                 });
-
+                Log.ForContext($"{nameof(result)}", result, true).Information("PersonController.GetPeople returned result");
                 return this.GetResponse(result);
             }
             catch (Exception ex)
             {
+                Log.Error(ex, ex.Message);
                 return this.GetResponse(new BaseResponse()
                 {
                     Message = ex.Message,
@@ -46,15 +46,17 @@ namespace StargateAPI.Controllers
         {
             try
             {
-                var result = await _mediator.Send(new GetPersonByName() //sender
+                var result = await _mediator.Send(new GetPersonByName()
                 {
                     Name = name
                 });
 
+                Log.ForContext($"{nameof(result)}", result, true).Information("PersonController.GetPersonByName returned result");
                 return this.GetResponse(result);
             }
             catch (Exception ex)
             {
+                Log.ForContext($"{nameof(name)}", name).Error(ex, ex.Message);
                 return this.GetResponse(new BaseResponse()
                 {
                     Message = ex.Message,
@@ -73,21 +75,18 @@ namespace StargateAPI.Controllers
                 {
                     Name = name
                 });
-
-                Log.Information("Created Person", result);
+                Log.ForContext($"{nameof(result)}", result, true).Information("PersonController.CreatePerson returned result");
                 return this.GetResponse(result);
             }
             catch (Exception ex)
             {
-                var response = new BaseResponse()
+                Log.ForContext($"{nameof(name)}", name).Error(ex, ex.Message);
+                return this.GetResponse(new BaseResponse()
                 {
                     Message = ex.Message,
                     Success = false,
                     ResponseCode = (int)HttpStatusCode.InternalServerError
-                };
-
-                Log.Error(ex.Message, ex);
-                return this.GetResponse(response);
+                });
             }
 
         }
@@ -98,11 +97,12 @@ namespace StargateAPI.Controllers
             try
             {
                 var result = await _mediator.Send(UpdatePersonDto);
-
+                Log.ForContext($"{nameof(result)}", result, true).Information("PersonController.UpdatePerson returned result");
                 return this.GetResponse(result);
             }
             catch (Exception ex)
             {
+                Log.ForContext($"{nameof(UpdatePersonDto)}", UpdatePersonDto, true).Error(ex, ex.Message);
                 return this.GetResponse(new BaseResponse()
                 {
                     Message = ex.Message,

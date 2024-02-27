@@ -29,22 +29,30 @@ namespace StargateAPI.Business.Queries
 
             var person = await _context.Connection.QueryFirstOrDefaultAsync<PersonAstronaut>(query);
 
+            if (person == default)
+            {
+                return new GetAstronautDutiesByNameResult()
+                {
+                    Success = false,
+                    Message = $"{request.Name} does not exist",
+                };
+            }
+
             result.Person = person;
 
-            query = $"SELECT * FROM [AstronautDuty] WHERE {person.PersonId} = PersonId Order By DutyStartDate Desc";
+            query = $"SELECT Rank, DutyTitle, DutyStartDate, DutyEndDate FROM [AstronautDuty] WHERE {person.PersonId} = PersonId Order By DutyStartDate Desc";
 
-            var duties = await _context.Connection.QueryAsync<AstronautDuty>(query);
+            var duties = await _context.Connection.QueryAsync<AstronautDutyDto>(query);
 
             result.AstronautDuties = duties.ToList();
 
             return result;
-
         }
     }
 
     public class GetAstronautDutiesByNameResult : BaseResponse
     {
         public PersonAstronaut Person { get; set; }
-        public List<AstronautDuty> AstronautDuties { get; set; } = new List<AstronautDuty>();
+        public List<AstronautDutyDto> AstronautDuties { get; set; } = new List<AstronautDutyDto>();
     }
 }

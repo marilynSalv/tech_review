@@ -25,9 +25,12 @@ namespace StargateAPI.Business.Commands
         /// Process method executes before calling the Handle method on your handler
         public Task Process(UpdatePerson request, CancellationToken cancellationToken) 
         {
-            var person = _context.People.AsNoTracking().FirstOrDefault(z => z.Name == request.CurrentName);
+            var currentName = _context.People.AsNoTracking().SingleOrDefault(z => z.Name == request.CurrentName);
 
-            if (person is not null) throw new BadHttpRequestException("Bad Request");
+            if (currentName is null) { throw new BadHttpRequestException($"{request.CurrentName} does not exist"); }
+
+            var newName = _context.People.AsNoTracking().SingleOrDefault(z => z.Name == request.NewName);
+            if (newName is not null) { throw new BadHttpRequestException($"{request.NewName} already exists"); }
 
             return Task.CompletedTask;
         }
@@ -52,24 +55,11 @@ namespace StargateAPI.Business.Commands
                 return new UpdatePersonResult()
                 {
                     Success = false,
-                    Message = "This person doesn't exist",
+                    Message = $"{request.CurrentName} does not exist",
                 };
             }
 
-            var newNameQuery = $"SELECT * FROM [Person] WHERE \'{request.NewName}\' = Name";
-
-            var newNamePerson = await _context.Connection.QuerySingleOrDefaultAsync<Person>(newNameQuery);
-
-            if(newNamePerson != default)
-            {
-                return new UpdatePersonResult()
-                {
-                    Success = false,
-                    Message = "New name already exists",
-                };
-            }
-
-
+            _context.Attach(existingPerson);
             existingPerson.Name = request.NewName;
 
             _context.People.Update(existingPerson);
@@ -80,8 +70,6 @@ namespace StargateAPI.Business.Commands
             {
                 Id = existingPerson.Id
             };
-
-
         }
     }
 

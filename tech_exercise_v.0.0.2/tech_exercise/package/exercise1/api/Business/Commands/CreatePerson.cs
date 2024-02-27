@@ -1,7 +1,6 @@
 ﻿using Dapper;
 using MediatR;
 using MediatR.Pipeline;
-using Microsoft.EntityFrameworkCore;
 using StargateAPI.Business.Data;
 using StargateAPI.Controllers;
 
@@ -21,7 +20,7 @@ namespace StargateAPI.Business.Commands
         }
         public Task Process(CreatePerson request, CancellationToken cancellationToken)
         {
-            var person = _context.People.AsNoTracking().FirstOrDefault(z => z.Name == request.Name);
+            var person = _context.People.SingleOrDefault(z => z.Name == request.Name);
 
             if (person is not null) throw new BadHttpRequestException("This person already exists");
 

@@ -1,7 +1,6 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
-using StargateAPI.Business.Commands;
 using StargateAPI.Business.Queries;
 using System.Net;
 
@@ -9,25 +8,24 @@ namespace StargateAPI.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class AstronautDutyController : ControllerBase
+    public class LogsController : ControllerBase
     {
         private readonly IMediator _mediator;
-        public AstronautDutyController(IMediator mediator)
+        public LogsController(IMediator mediator)
         {
             _mediator = mediator;
         }
 
-        [HttpGet("{name}")]
-        public async Task<IActionResult> GetAstronautDutiesByName(string name)
+        [HttpGet("GetExceptionLogs")]
+        public async Task<IActionResult> GetExceptionLogs()
         {
             try
             {
-                var result = await _mediator.Send(new GetAstronautDutiesByName()
+                var result = await _mediator.Send(new GetExceptions()
                 {
-                    Name = name
                 });
 
-                Log.ForContext($"{nameof(result)}", result, true).Information("AstronautDutyController.GetAstronautDutiesByName returned result");
+                Log.ForContext($"{nameof(result)}", result, true).Information("LogsController.GetExceptionLogs returned result");
                 return this.GetResponse(result);
             }
             catch (Exception ex)
@@ -42,13 +40,16 @@ namespace StargateAPI.Controllers
             }            
         }
 
-        [HttpPost("")]
-        public async Task<IActionResult> CreateAstronautDuty([FromBody] CreateAstronautDuty request)
+        [HttpGet("GetSuccessLogs")]
+        public async Task<IActionResult> GetSuccessLogs()
         {
             try
             {
-                var result = await _mediator.Send(request);
-                Log.ForContext($"{nameof(result)}", result, true).Information("AstronautDutyController.CreateAstronautDuty returned result");
+                var result = await _mediator.Send(new GetSuccesses()
+                {
+                });
+
+                Log.ForContext($"{nameof(result)}", result, true).Information("LogsController.GetSuccessLogs returned result");
                 return this.GetResponse(result);
             }
             catch (Exception ex)

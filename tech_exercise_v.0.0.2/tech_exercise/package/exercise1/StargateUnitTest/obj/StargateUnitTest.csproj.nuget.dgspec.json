@@ -138,6 +138,10 @@
         "net7.0": {
           "targetAlias": "net7.0",
           "dependencies": {
+            "FluentAssertions": {
+              "target": "Package",
+              "version": "[6.12.0, )"
+            },
             "MSTest.TestAdapter": {
               "target": "Package",
               "version": "[2.2.10, )"
@@ -145,6 +149,10 @@
             "MSTest.TestFramework": {
               "target": "Package",
               "version": "[2.2.10, )"
+            },
+            "Microsoft.EntityFrameworkCore.Sqlite": {
+              "target": "Package",
+              "version": "[7.0.16, )"
             },
             "Microsoft.NET.Test.Sdk": {
               "target": "Package",
