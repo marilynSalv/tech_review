@@ -30,7 +30,7 @@ namespace StargateAPI.Business.Commands
 
         public Task Process(CreateAstronautDuty request, CancellationToken cancellationToken)
         {
-            var query = $"SELECT a.Id as PersonId, a.Name, b.CurrentRank, b.CurrentDutyTitle, b.CareerStartDate, b.CareerEndDate FROM [Person] a LEFT JOIN [AstronautDetail] b on b.PersonId = a.Id WHERE '{request.Name}' = a.Name";
+            var query = $"SELECT a.Id as PersonId, a.Name, b.CurrentRank, b.CurrentDutyTitle, b.CareerStartDate, b.CareerEndDate FROM [Person] a LEFT JOIN [AstronautDetail] b on b.PersonId = a.Id WHERE '{request.Name.ToUpper()}' = upper(a.Name)";
 
             var person = _context.Connection.QuerySingleOrDefault<PersonAstronaut>(query);
 
@@ -57,7 +57,7 @@ namespace StargateAPI.Business.Commands
         {
             using (var dbContextTransaction = _context.Database.BeginTransaction())
             {
-                var query = $"SELECT * FROM [Person] WHERE \'{request.Name}\' = Name";
+                var query = $"SELECT * FROM [Person] WHERE \'{request.Name.ToUpper()}\' = upper(Name)";
 
                 var person = await _context.Connection.QueryFirstOrDefaultAsync<Person>(query);
 

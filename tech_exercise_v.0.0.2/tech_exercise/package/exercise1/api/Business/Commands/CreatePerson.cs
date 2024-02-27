@@ -20,7 +20,7 @@ namespace StargateAPI.Business.Commands
         }
         public Task Process(CreatePerson request, CancellationToken cancellationToken)
         {
-            var person = _context.People.SingleOrDefault(z => z.Name == request.Name);
+            var person = _context.People.SingleOrDefault(z => z.Name.ToUpper() == request.Name.ToUpper());
 
             if (person is not null) throw new BadHttpRequestException("This person already exists");
 

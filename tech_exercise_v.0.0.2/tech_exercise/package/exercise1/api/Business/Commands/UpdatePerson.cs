@@ -25,11 +25,11 @@ namespace StargateAPI.Business.Commands
         /// Process method executes before calling the Handle method on your handler
         public Task Process(UpdatePerson request, CancellationToken cancellationToken) 
         {
-            var currentName = _context.People.AsNoTracking().SingleOrDefault(z => z.Name == request.CurrentName);
+            var currentName = _context.People.AsNoTracking().SingleOrDefault(z => z.Name.ToUpper() == request.CurrentName.ToUpper());
 
             if (currentName is null) { throw new BadHttpRequestException($"{request.CurrentName} does not exist"); }
 
-            var newName = _context.People.AsNoTracking().SingleOrDefault(z => z.Name == request.NewName);
+            var newName = _context.People.AsNoTracking().SingleOrDefault(z => z.Name.ToUpper() == request.NewName.ToUpper());
             if (newName is not null) { throw new BadHttpRequestException($"{request.NewName} already exists"); }
 
             return Task.CompletedTask;
@@ -46,7 +46,7 @@ namespace StargateAPI.Business.Commands
         }
         public async Task<UpdatePersonResult> Handle(UpdatePerson request, CancellationToken cancellationToken)
         {
-            var query = $"SELECT * FROM [Person] WHERE \'{request.CurrentName}\' = Name";
+            var query = $"SELECT * FROM [Person] WHERE \'{request.CurrentName.ToUpper()}\' = upper(Name)";
 
             var existingPerson = await _context.Connection.QuerySingleOrDefaultAsync<Person>(query);
 
