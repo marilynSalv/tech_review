@@ -10,77 +10,59 @@ namespace StargateUnitTest.Commands;
 [TestClass]
 public class CreatePersonTests
 {
-    [TestMethod]
-    public async Task CreatePersonHandlerTest_NewPerson()
+    private DbContextOptions<StargateContext> _options;
+    [TestInitialize]
+    public void SetUp()
     {
         var connection = new SqliteConnection("DataSource=:memory:");
         connection.Open();
 
-        var options = new DbContextOptionsBuilder<StargateContext>().UseSqlite(connection).Options;
+        _options = new DbContextOptionsBuilder<StargateContext>().UseSqlite(connection).Options;
 
-        using (var context = new StargateContext(options))
+        using (var context = new StargateContext(_options))
         {
             context.Database.EnsureCreated();
         }
+    }
 
-        using (var context = new StargateContext(options))
+    [TestMethod]
+    public async Task CreatePersonHandlerTest_NewPerson()
+    {
+        using var context = new StargateContext(_options);
+        var handler = new CreatePersonHandler(context);
+
+        var result = await handler.Handle(new CreatePerson() { Name = "Teresa Gonzales" }, default);
+
+        var expectedResult = new CreatePersonResult
         {
-            var handler = new CreatePersonHandler(context);
-
-            var result = await handler.Handle(new CreatePerson() { Name = "Teresa Gonzales"}, default);
-
-            var expectedResult = new CreatePersonResult
-            {
-                Id = 1,
-            };
-            result.Should().BeEquivalentTo(expectedResult);
-        }
+            Id = 1,
+        };
+        result.Should().BeEquivalentTo(expectedResult);
     }
 
     [TestMethod]
     public async Task CreatePersonPreProcessorTest_PersonDoesNotExist()
     {
-        var connection = new SqliteConnection("DataSource=:memory:");
-        connection.Open();
+        using var context = new StargateContext(_options);
 
-        var options = new DbContextOptionsBuilder<StargateContext>().UseSqlite(connection).Options;
+        var preProcessor = new CreatePersonPreProcessor(context);
 
-        using (var context = new StargateContext(options))
-        {
-            context.Database.EnsureCreated();
-        }
-
-        using (var context = new StargateContext(options))
-        {
-            var preProcessor = new CreatePersonPreProcessor(context);
-
-            var param = new CreatePerson() { Name = "Teresa Gonzales" };
-            var task = preProcessor.Process(param, default);
-            await task;
-            task.IsCompleted.Should().BeTrue();
-        }
+        var param = new CreatePerson() { Name = "Teresa Gonzales" };
+        var task = preProcessor.Process(param, default);
+        await task;
+        task.IsCompleted.Should().BeTrue();
     }
 
     [TestMethod]
     public async Task CreatePersonPreProcessorTest_PersonExists()
     {
-        var connection = new SqliteConnection("DataSource=:memory:");
-        connection.Open();
-
-        var options = new DbContextOptionsBuilder<StargateContext>().UseSqlite(connection).Options;
-
-        using (var context = new StargateContext(options))
-        {
-            context.Database.EnsureCreated();
-        }
-
-        using (var context = new StargateContext(options))
+        using (var context = new StargateContext(_options))
         {
             context.People.Add(new Person { Id = 1, Name = "Teresa Gonzales" });
             await context.SaveChangesAsync();
         }
 
-        using (var context = new StargateContext(options))
+        using (var context = new StargateContext(_options))
         {
             var preProcessor = new CreatePersonPreProcessor(context);
 

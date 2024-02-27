@@ -10,20 +10,25 @@ namespace StargateUnitTest.Queries;
 [TestClass]
 public class GetAstronautDutiesByNameTests
 {
-    [TestMethod]
-    public async Task GetAstronautDutiesByName_NoError()
+    private DbContextOptions<StargateContext> _options;
+    [TestInitialize]
+    public void SetUp()
     {
         var connection = new SqliteConnection("DataSource=:memory:");
         connection.Open();
 
-        var options = new DbContextOptionsBuilder<StargateContext>().UseSqlite(connection).Options;
+        _options = new DbContextOptionsBuilder<StargateContext>().UseSqlite(connection).Options;
 
-        using (var context = new StargateContext(options))
+        using (var context = new StargateContext(_options))
         {
             context.Database.EnsureCreated();
         }
+    }
 
-        using (var context = new StargateContext(options))
+    [TestMethod]
+    public async Task GetAstronautDutiesByName_NoError()
+    {
+        using (var context = new StargateContext(_options))
         {
             var persons = new List<Person> { new Person { Id = 1, Name = "Jimmy" }, new Person { Id = 2, Name = "Teresa" } };
             var person1Detail = new AstronautDetail { Id = 1, PersonId = 1, CurrentRank = "R1", CurrentDutyTitle = "Commander", CareerStartDate = new DateTime(2023, 4, 5) };
@@ -38,7 +43,7 @@ public class GetAstronautDutiesByNameTests
             await context.SaveChangesAsync();
         }
 
-        using (var context = new StargateContext(options))
+        using (var context = new StargateContext(_options))
         {
             var handler = new GetAstronautDutiesByNameHandler(context);
 

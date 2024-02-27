@@ -10,20 +10,26 @@ namespace StargateUnitTest.Commands;
 [TestClass]
 public class CreateAstronautDutyTests
 {
-    [TestMethod]
-    public async Task CreateAstronautDutyHandler_NoError()
+
+    private DbContextOptions<StargateContext> _options;
+    [TestInitialize]
+    public void SetUp()
     {
         var connection = new SqliteConnection("DataSource=:memory:");
         connection.Open();
 
-        var options = new DbContextOptionsBuilder<StargateContext>().UseSqlite(connection).Options;
+        _options = new DbContextOptionsBuilder<StargateContext>().UseSqlite(connection).Options;
 
-        using (var context = new StargateContext(options))
+        using (var context = new StargateContext(_options))
         {
             context.Database.EnsureCreated();
         }
+    }
 
-        using (var context = new StargateContext(options))
+    [TestMethod]
+    public async Task CreateAstronautDutyHandler_NoError()
+    {
+        using (var context = new StargateContext(_options))
         {
             context.People.Add(new Person { Id = 1, Name = "Teresa Gonzales" });
             context.AstronautDuties.Add(new AstronautDuty { Id = 1, PersonId = 1, Rank = "R1", DutyTitle = "Pilot", DutyStartDate = new DateTime(2024, 2, 1) });
@@ -32,7 +38,7 @@ public class CreateAstronautDutyTests
         }
 
 
-        using (var context = new StargateContext(options))
+        using (var context = new StargateContext(_options))
         {
             var handler = new CreateAstronautDutyHandler(context);
 
@@ -50,23 +56,13 @@ public class CreateAstronautDutyTests
     [TestMethod]
     public async Task CreateAstronautDutyPreProcessor_NoOverlapInDuties()
     {
-        var connection = new SqliteConnection("DataSource=:memory:");
-        connection.Open();
-
-        var options = new DbContextOptionsBuilder<StargateContext>().UseSqlite(connection).Options;
-
-        using (var context = new StargateContext(options))
-        {
-            context.Database.EnsureCreated();
-        }
-
-        using (var context = new StargateContext(options))
+        using (var context = new StargateContext(_options))
         {
             context.People.Add(new Person { Id = 1, Name = "Teresa Gonzales" });
             await context.SaveChangesAsync();
         }
 
-        using (var context = new StargateContext(options))
+        using (var context = new StargateContext(_options))
         {
             var preProcessor = new CreateAstronautDutyPreProcessor(context);
 
@@ -80,24 +76,14 @@ public class CreateAstronautDutyTests
     [TestMethod]
     public async Task CreateAstronautDutyPreProcessor_OverlapInDuties()
     {
-        var connection = new SqliteConnection("DataSource=:memory:");
-        connection.Open();
-
-        var options = new DbContextOptionsBuilder<StargateContext>().UseSqlite(connection).Options;
-
-        using (var context = new StargateContext(options))
-        {
-            context.Database.EnsureCreated();
-        }
-
-        using (var context = new StargateContext(options))
+        using (var context = new StargateContext(_options))
         {
             context.People.Add(new Person { Id = 1, Name = "Teresa Gonzales" });
             context.AstronautDuties.Add(new AstronautDuty { Id = 1, PersonId = 1, DutyStartDate = new DateTime(2024, 2, 26), DutyTitle = "Commander", Rank = "R1" });
             await context.SaveChangesAsync();
         }
 
-        using (var context = new StargateContext(options))
+        using (var context = new StargateContext(_options))
         {
             var preProcessor = new CreateAstronautDutyPreProcessor(context);
 
