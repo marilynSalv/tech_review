@@ -94,4 +94,27 @@ public class CreateAstronautDutyTests
                 .WithMessage("Teresa Gonzales already has duty Commander with rank R1 for date 2/26/2024 12:00:00 AM");
         }
     }
+
+    [TestMethod]
+    public async Task CreateAstronautDutyPreProcessor_Retired()
+    {
+        using (var context = new StargateContext(_options))
+        {
+            context.People.Add(new Person { Id = 1, Name = "Teresa Gonzales" });
+            context.AstronautDetails.Add(new AstronautDetail { PersonId = 1, CurrentDutyTitle = "RETIRED" });
+            context.AstronautDuties.Add(new AstronautDuty { Id = 1, PersonId = 1, DutyStartDate = new DateTime(2024, 2, 26), DutyTitle = "RETIRED", Rank = "R1" });
+            await context.SaveChangesAsync();
+        }
+
+        using (var context = new StargateContext(_options))
+        {
+            var preProcessor = new CreateAstronautDutyPreProcessor(context);
+
+            var param = new CreateAstronautDuty() { Name = "Teresa Gonzales", Rank = "R1", DutyTitle = "Commander", DutyStartDate = new DateTime(2024, 2, 26) };
+            var act = async () => await preProcessor.Process(param, default);
+
+            await act.Should().ThrowAsync<BadHttpRequestException>()
+                .WithMessage("Teresa Gonzales is retired");
+        }
+    }
 }
